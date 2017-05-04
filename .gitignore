@@ -1,3 +1,5 @@
+.*
 *.nc
 *.pyc
+*.txt
 *.egg-info

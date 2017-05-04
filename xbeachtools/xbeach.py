@@ -202,8 +202,8 @@ class XBeachWaves(XBeachParams):
                 fname = self._file
             with open(os.path.join(fpath, fname), 'w') as fp:
                 fp.write('Hm0 = %0.6f\n' % ow['_energy'].values)
-                fp.write('Tp = %0.6f\n' % ow['_period'].values)
-                fp.write('mainang = %0.6f\n' % ow['_direction'].values)
+                fp.write('Tp = %0.6f\n' % 12.) # FIXME: this should be fixed in oceanwaves (1./ow['_frequency'].values)
+                fp.write('mainang = %0.6f\n' % 0.) # FIXME: this should be fixed in oceanwaves (ow['_direction'].values)
                 fp.write('gammajsp = 3.3\n')
                 fp.write('s = 10.\n')
                 fp.write('fnyq = 0.3\n')
