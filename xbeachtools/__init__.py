@@ -1,1 +1,1 @@
-from xbeach import *
+from .xbeach import *
