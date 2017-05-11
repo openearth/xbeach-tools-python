@@ -15,7 +15,7 @@ class XBeachModel(OrderedDict):
 
     def __repr__(self):
         s = 'XBeach Model Object:\n\n'
-        for name, obj in self.iteritems():
+        for name, obj in self.items():
             if not name.startswith('_'):
                 s += '  %s:\n' % name
             s += obj.pretty_print(indent=4)
@@ -39,7 +39,7 @@ class XBeachModel(OrderedDict):
         if not os.path.exists(fpath):
             os.makedirs(fpath)
         params = XBeachParams(self['_params'])
-        for name, obj in self.iteritems():
+        for name, obj in self.items():
             obj.write(fpath)
             params.update(obj)
         params.write(fpath)
@@ -74,7 +74,7 @@ class XBeachParams(OrderedDict):
 
     def pretty_print(self, indent=0):
         s = ''
-        for k, v in self.iteritems():
+        for k, v in self.items():
             s += (' ' * indent) + self._fmt % (k, self.pretty_print_value(v))
         return s
             
@@ -125,7 +125,8 @@ class XBeachBathymetry(XBeachParams):
             self['ny'] = 0
             
         elif len(args) == 3:
-
+            
+            self.x = np.asarray(args[0])
             self.y = np.asarray(args[1])
             self.z = np.asarray(args[2])
             
