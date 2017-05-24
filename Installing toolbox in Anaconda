@@ -1,0 +1,13 @@
+This file contains a short description of how I installed the toolbox in my Anaconda environment.
+
+After you have downloaded the files (or with creating a TortoiseSVN/GIT checkout), you have to install the toolbox using Anaconda Prompt.
+
+Here you have to make sure that you are in the desired environment (when other than root). 
+To see the working environment: conda info --envs
+To change your environment: activate name_of_environment
+
+Thereafter you cd to the folder above the file: setup.py (normally this would be the folder: xbeach-tools)
+
+Thereafter you do: pip install -e xbeach-tools (so the folder above the setup.py file)
+
+When received message of succes installation you should be able to use the toolbox.
