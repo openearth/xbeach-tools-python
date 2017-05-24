@@ -23,8 +23,11 @@ class XBeachModel(OrderedDict):
         return s
     
 
-    def set_bathymetry(self, *args, **kwargs):
-        self['bathymetry'] = XBeachBathymetry(*args, **kwargs)
+    def set_bathymetry(self, *args,**kwargs):
+        if len(args) > 0 and isinstance(args[0], XBeachBathymetry):             
+            self['bathymetry'] = args[0]            
+        else:
+            self['bathymetry'] = XBeachBathymetry(*args, **kwargs)
 
         
     def set_waves(self, *args, **kwargs):
@@ -75,13 +78,17 @@ class XBeachParams(OrderedDict):
     def pretty_print(self, indent=0):
         s = ''
         for k, v in self.items():
-            s += (' ' * indent) + self._fmt % (k, self.pretty_print_value(v))
+            s += (' ' * indent) + self._fmt % (k, self.pretty_print_value(v, k))
         return s
-            
         
-    def pretty_print_value(self, v):
+        
+    def pretty_print_value(self, v, k):
         if type(v) is list:
-            return ' '.join([self.pretty_print_value(vi) for vi in v])
+            if re.match('^n\w+var$', k):
+                return '%d\n' % len(v) + \
+                       '\n'.join([self.pretty_print_value(vi, k) for vi in v])
+            else:
+                return ' '.join([self.pretty_print_value(vi, k) for vi in v])
         elif type(v) is str:
             return v
         elif type(v) is int:
@@ -116,26 +123,66 @@ class XBeachBathymetry(XBeachParams):
 
     def __init__(self, *args, **kwargs):
         super(XBeachBathymetry, self).__init__(**kwargs)
-
+        
+        if not kwargs.keys() >= {'dx','grex','grextype','mirror','turn'}:       #keys() is viewkeys() in Python 2!?  
+            raise ValueError('Not all expected keyword arguments are specified, got:', kwargs)  
+       
+        if kwargs['grex'] <= 0 and kwargs['grextend'] in ['both','offshore','onshore']:       
+                raise ValueError('Expected grex>0, got %d', kwargs['grex'])
+                
         if len(args) == 2:
-
-            self.x = np.asarray(args[0]).reshape((1,-1))
+            self.x = np.asarray(args[0]).reshape((1,-1))        
             self.z = np.asarray(args[1]).reshape((1,-1))
             
             self['ny'] = 0
             
-        elif len(args) == 3:
-            
+            if kwargs['grex']>0:        
+                for i in range(kwargs['grex']):
+                    if kwargs['grextype'] in ['both','offshore']:               
+                        self.x = np.append(self.x[:,0].reshape((1,-1)) - kwargs['dx'], self.x, axis=1)
+                        self.z = np.append(self.z[:,0].reshape((1,-1)), self.z, axis=1)
+                        
+                    if kwargs['grextype'] in ['both','onshore']: 
+                        self.x = np.append(self.x, self.x[:,-1].reshape((1,-1)) + kwargs['dx'], axis=1)
+                        self.z = np.append(self.z, self.z[:,-1].reshape((1,-1)), axis=1)
+                                  
+        elif len(args) == 3:            
             self.x = np.asarray(args[0])
             self.y = np.asarray(args[1])
             self.z = np.asarray(args[2])
             
-            self['ny'] = self.y.shape[0] - 1
+            self['ny'] = self.y.shape[0] - 1                
             self['yfile'] = self._filey
             
+            if kwargs['grex']>0:      
+                for i in range(kwargs['grex']):
+                    if kwargs['grextype'] in ['both','offshore']:         
+                        self.x = np.concatenate((self.x[:, 0][:, None] - kwargs['dx'], self.x), axis=1)   
+                        self.y = np.concatenate((self.y[:, 0][:, None], self.y), axis=1)
+                        self.z = np.concatenate((self.z[:, 0][:, None], self.z), axis=1) 
+                        
+                    if kwargs['grextype'] in ['both','onshore']: 
+                        self.x = np.concatenate((self.x, self.x[:, -1][:, None] + kwargs['dx']), axis=1)
+                        self.y = np.concatenate((self.y, self.y[:, -1][:, None]), axis=1)
+                        self.z = np.concatenate((self.z, self.z[:, -1][:, None]), axis=1)            
         else:
             raise ValueError('Expected 2 or 3 non-keyword arguments, got %d', len(args))
-
+       
+        if kwargs['mirror'] == True:                
+            self.z = np.fliplr(self.z)
+       
+        if kwargs['turn'] == True and len(args) == 3:                        
+            self.yy = self.y
+            self.xx = self.x
+            self.y = self.xx.transpose((1,0))    
+            self.x = self.yy.transpose((1,0))
+            self.z = self.z.transpose((1,0))    
+            
+            self['ny'] = self.y.shape[0] - 1                
+            self['yfile'] = self._filey                 
+        elif kwargs['turn']==True: 
+            raise ValueError('Expected 3 non-keyword arguments for 2D transpose, got %d', len(args))
+          
         self['nx'] = self.x.shape[1] - 1
         self['xfile'] = self._filex
         self['depfile'] = self._filez
