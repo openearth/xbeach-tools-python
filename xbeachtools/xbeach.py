@@ -9,7 +9,7 @@ class XBeachModel(OrderedDict):
 
 
     def __init__(self, **kwargs):
-        super(XBeachModel, self).__init__()     #Note that the syntax changed in Python 3.0: you can just say super().__init__() instead of super(ChildB, self).__init__()
+        super(XBeachModel, self).__init__()     #Note that the syntax changed in Python 3.0: you could just say super().__init__() instead of super(XBeachModel, self).__init__()
         self['_params'] = XBeachParams(**kwargs)
 
 
@@ -124,7 +124,7 @@ class XBeachBathymetry(XBeachParams):
     _filez = 'z.txt'
                 
 
-    def __init__(self, *args, **kwargs):                #IN DOCUMENTATIE ZETTEN DAT DE BEOOGDE GEBRUIKERSVOLGORDE IS: GRIDEXTEND --> MIRROR--> TURN, EN DAT DE FUNCTIES TOEGEVOEGD ZIJN 
+    def __init__(self, *args, **kwargs):                
         super(XBeachBathymetry, self).__init__(**kwargs)
                     
         if len(args) == 2:
@@ -184,7 +184,7 @@ class XBeachBathymetry(XBeachParams):
         self.z = np.fliplr(self.z)
        
         
-    def turn(self):         #DOCUMENTEREN DAT DIE 90 GRADEN IN DE .?.-RICHTING IS
+    def turn(self):         
         if self.y is not None:                        
             self.yy = self.y
             self.xx = self.x
